@@ -124,44 +124,47 @@ def finalize_channel(message, ch_id, ch_name):
 def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
-    price = ch_data['plans'][mins]
+    price = int(ch_data['plans'][mins])
 
-    price = int(price)
+    # Free Demo Plan (No QR, No Admin Approval)
+    if price == 0:
+        expiry_datetime = datetime.now() + timedelta(minutes=int(mins))
+        expiry_ts = int(expiry_datetime.timestamp())
 
-# Free demo plan
-if price == 0:
-    expiry_datetime = datetime.now() + timedelta(minutes=int(mins))
-    expiry_ts = int(expiry_datetime.timestamp())
+        link = bot.create_chat_invite_link(
+            int(ch_id),
+            member_limit=1,
+            expire_date=expiry_ts
+        )
 
-    link = bot.create_chat_invite_link(
-        int(ch_id),
-        member_limit=1,
-        expire_date=expiry_ts
-    )
+        users_col.update_one(
+            {"user_id": call.from_user.id, "channel_id": int(ch_id)},
+            {"$set": {"expiry": expiry_datetime.timestamp()}},
+            upsert=True
+        )
 
-    users_col.update_one(
-        {"user_id": call.from_user.id, "channel_id": int(ch_id)},
-        {"$set": {"expiry": expiry_datetime.timestamp()}},
-        upsert=True
-    )
+        bot.send_message(
+            call.message.chat.id,
+            f"🎉 Demo Access Activated!\n\n"
+            f"Duration: {mins} Minutes\n\n"
+            f"Join Link:\n{link.invite_link}"
+        )
+        return
 
-    bot.send_message(
-        call.message.chat.id,
-        f"🎉 Demo Access Activated!\n\n"
-        f"Join here:\n{link.invite_link}\n\n"
-        f"Valid for {mins} minutes."
-    )
-    
-   return
-        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa={UPI_ID}%26am={price}%26cu=INR"
-    
+    # Paid Plans (No QR Image)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
     markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-    
-    bot.send_photo(call.message.chat.id, qr_url, 
-                   caption=f"Plan: {mins} Minutes\nPrice: ₹{price}\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
-                   reply_markup=markup, parse_mode="Markdown")
+
+    bot.send_message(
+        call.message.chat.id,
+        f"💳 Plan: {mins} Minutes\n"
+        f"Price: ₹{price}\n\n"
+        f"UPI ID: `{UPI_ID}`\n\n"
+        "Please send the payment to the UPI ID above and then click 'I Have Paid'.",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
