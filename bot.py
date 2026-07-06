@@ -151,7 +151,7 @@ if price == 0:
         f"Join here:\n{link.invite_link}\n\n"
         f"Valid for {mins} minutes."
     )
-    return
+    else
     
     qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa={UPI_ID}%26am={price}%26cu=INR"
     
