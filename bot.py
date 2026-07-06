@@ -159,9 +159,10 @@ def user_pays(call):
     bot.send_message(
         call.message.chat.id,
         f"💳 Plan: {mins} Minutes\n"
-        f"Price: ₹{price}\n\n"
-        f"UPI ID: `{UPI_ID}`\n\n"
-        "Please send the payment to the UPI ID above and then click 'I Have Paid'.",
+        f"Price: रु{price}\n\n"
+        "Binance ID For International Clients"
+        f"Binance ID: `{UPI_ID}`\n\n\n"
+        "Please send the payment to the Payment modes above and then click 'I Have Paid'. Also Send your payment screenshot to admin for verification.",
         reply_markup=markup,
         parse_mode="Markdown"
     )
