@@ -125,6 +125,33 @@ def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = ch_data['plans'][mins]
+
+    price = int(price)
+
+# Free demo plan
+if price == 0:
+    expiry_datetime = datetime.now() + timedelta(minutes=int(mins))
+    expiry_ts = int(expiry_datetime.timestamp())
+
+    link = bot.create_chat_invite_link(
+        int(ch_id),
+        member_limit=1,
+        expire_date=expiry_ts
+    )
+
+    users_col.update_one(
+        {"user_id": call.from_user.id, "channel_id": int(ch_id)},
+        {"$set": {"expiry": expiry_datetime.timestamp()}},
+        upsert=True
+    )
+
+    bot.send_message(
+        call.message.chat.id,
+        f"🎉 Demo Access Activated!\n\n"
+        f"Join here:\n{link.invite_link}\n\n"
+        f"Valid for {mins} minutes."
+    )
+    return
     
     qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa={UPI_ID}%26am={price}%26cu=INR"
     
