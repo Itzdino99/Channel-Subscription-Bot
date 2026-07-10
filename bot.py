@@ -125,6 +125,10 @@ def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = int(ch_data['plans'][mins])
+    InlineKeyboardButton(
+            "🎉 Join Demo Channel",
+            url=DEMO_CHANNEL_LINK
+    )
 
     # Free Demo Plan (No QR, No Admin Approval)
     if price == 0:
