@@ -160,7 +160,7 @@ def user_pays(call):
         call.message.chat.id,
         f"💳 Plan: {mins} Minutes\n"
         f"Price: रु{price}\n\n"
-        "Binance ID For International Clients"
+        "Binance ID For International Clients\n\n"
         f"Binance ID: `{UPI_ID}`\n\n\n"
         "Please send the payment to the Payment modes above and then click 'I Have Paid'. Also Send your payment screenshot to admin for verification.",
         reply_markup=markup,
