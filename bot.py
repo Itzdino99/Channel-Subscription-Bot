@@ -154,7 +154,7 @@ def user_pays(call):
         return
 qr_url = f"https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
     # Paid Plans (No QR Image)
-    markup = InlineKeyboardMarkup()
+    
     markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
     markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
 
