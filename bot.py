@@ -126,7 +126,7 @@ def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = int(ch_data['plans'][mins])
-    
+
     # Free Demo Plan (No QR, No Admin Approval)
     if price == 0:
         expiry_datetime = datetime.now() + timedelta(minutes=int(mins))
@@ -151,21 +151,38 @@ def user_pays(call):
             f"Join Link:\n{link.invite_link}"
         )
         return
-qr_url = f"https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
-    # Paid Plans (No QR Image)
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
-    markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
 
-    bot.send_photo(call.message.chat.id, qr_url,
-        caption=f"💳 Plan: {mins} Minutes\n"
-        f"Price: रु{price}\n\n"
-        "Binance ID For International Clients\n\n"
-        f"Binance ID: `{UPI_ID}`\n\n\n"
-        "Please send the payment to the Payment modes above and then click 'I Have Paid'. Also Send your payment screenshot to admin for verification.",
+    # Paid Plans
+    qr_url = "https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            "✅ I Have Paid",
+            callback_data=f"paid_{ch_id}_{mins}"
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            "📞 Contact Admin",
+            url=f"https://t.me/{CONTACT_USERNAME}"
+        )
+    )
+
+    bot.send_photo(
+        call.message.chat.id,
+        qr_url,
+        caption=(
+            f"💳 Plan: {mins} Minutes\n"
+            f"Price: रु{price}\n\n"
+            "Binance ID For International Clients\n\n"
+            f"Binance ID: `{UPI_ID}`\n\n"
+            "Please send the payment to the payment method above and then click "
+            "'I Have Paid'. Also send your payment screenshot to the admin for verification."
+        ),
         reply_markup=markup,
         parse_mode="Markdown"
-    )
+        )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
