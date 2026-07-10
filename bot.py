@@ -47,6 +47,7 @@ def start_handler(message):
             if ch_data:
                 markup = InlineKeyboardMarkup()
                 # Display Dynamic Plans
+                markup.add(InlineKeyboardButton("Demo 💋", url=f"https://t.me/{CONTACT_USERNAME}"))
                 for p_time, p_price in ch_data['plans'].items():
                     label = f"{p_time} Min" if int(p_time) < 60 else f"{int(p_time)//1440} Days"
                     markup.add(InlineKeyboardButton(f"💳 {label} - ₹{p_price}", callback_data=f"select_{ch_id}_{p_time}"))
@@ -125,10 +126,7 @@ def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = int(ch_data['plans'][mins])
-    InlineKeyboardButton(
-            "🎉 Join Demo Channel",
-            url=DEMO_CHANNEL_LINK
-    )
+    
 
     # Free Demo Plan (No QR, No Admin Approval)
     if price == 0:
