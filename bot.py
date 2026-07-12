@@ -41,54 +41,53 @@ def start_handler(message):
 
     # User entry via Deep Link
     if len(text) > 1:
-    try:
-        ch_id = int(text[1])
-        ch_data = channels_col.find_one({"channel_id": ch_id})
+        try:
+            ch_id = int(text[1])
+            ch_data = channels_col.find_one({"channel_id": ch_id})
 
-        if ch_data:
-            markup = InlineKeyboardMarkup()
+            if ch_data:
+                markup = InlineKeyboardMarkup()
 
-            # Demo URL
-            rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
-            markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
+                # Demo URL
+                rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
+                markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
-            
-            USD_RATE = 140  # 1 USD = 140 NPR (change if needed)
+                USD_RATE = 140
 
+                # Display Dynamic Plans
+                for p_time, p_price in ch_data["plans"].items():
 
-            # Display Dynamic Plans
-            for p_time, p_price in ch_data["plans"].items():
+                    if int(p_time) < 1440:
+                        label = f"{p_time} Min"
+                    else:
+                        label = f"{int(p_time)//1440} Days"
 
-                if int(p_time) < 1440:
-                    label = f"{p_time} Min"
-                else:
-                    label = f"{int(p_time)//1440} Days"
+                    usd_price = float(p_price) / USD_RATE
 
-                usd_price = float(p_price) / USD_RATE
+                    markup.add(
+                        InlineKeyboardButton(
+                            f"💳 {label} - रु.{p_price} (${usd_price:.2f})",
+                            callback_data=f"select_{ch_id}_{p_time}"
+                        )
+                    )
 
                 markup.add(
                     InlineKeyboardButton(
-                        f"💳 {label} - रु.{p_price} (${usd_price:.2f})",
-                        callback_data=f"select_{ch_id}_{p_time}"
+                        "📞 Contact Admin",
+                        url=f"https://t.me/{CONTACT_USERNAME}"
                     )
                 )
 
-            markup.add(
-                InlineKeyboardButton(
-                    "📞 Contact Admin",
-                    url=f"https://t.me/{CONTACT_USERNAME}"
+                bot.send_message(
+                    message.chat.id,
+                    f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:",
+                    reply_markup=markup,
+                    parse_mode="Markdown"
                 )
-            )
+                return
 
-            bot.send_message(
-                message.chat.id,
-                f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:",
-                reply_markup=markup,
-                parse_mode="Markdown"
-            )
-            return
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
                 
 
     # Admin Panel Greeting
