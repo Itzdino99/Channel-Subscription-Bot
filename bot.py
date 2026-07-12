@@ -40,7 +40,7 @@ def start_handler(message):
     text = message.text.split()
 
     # User entry via Deep Link
-    if len(text) > 1:
+if len(text) > 1:
     try:
         ch_id = int(text[1])
         ch_data = channels_col.find_one({"channel_id": ch_id})
@@ -48,14 +48,14 @@ def start_handler(message):
         if ch_data:
             markup = InlineKeyboardMarkup()
 
-            # Demo URL (only once)
+            # Demo URL
             rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
             markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
-            USD_RATE = 140  # Change if needed
+            USD_RATE = 140
 
             # Display Dynamic Plans
-            for p_time, p_price in ch_data['plans'].items():
+            for p_time, p_price in ch_data["plans"].items():
 
                 if int(p_time) < 1440:
                     label = f"{p_time} Min"
@@ -71,7 +71,6 @@ def start_handler(message):
                     )
                 )
 
-            # Contact Admin
             markup.add(
                 InlineKeyboardButton(
                     "📞 Contact Admin",
@@ -85,6 +84,8 @@ def start_handler(message):
                 reply_markup=markup,
                 parse_mode="Markdown"
             )
+
+            return
 
     except Exception as e:
         print(e)
