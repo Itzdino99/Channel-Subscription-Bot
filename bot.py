@@ -53,13 +53,13 @@ def start_handler(message):
                     
                     markup.add(InlineKeyboardButton(f"💳 {label} - रु.{p_price}", callback_data=f"select_{ch_id}_{p_time}"))
               
-                rejoin_url = f"https://t.me/+WA5xxUNmb9tmZmE1"
-            markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
-    
-                markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
+                
+            markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
                 bot.send_message(message.chat.id, 
                     f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:", 
-                                 
+                                 rejoin_url = f"https://t.me/+WA5xxUNmb9tmZmE1"
+            markup = InlinekeyBoardMarkup().add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
+            
             
             
                     reply_markup=markup, parse_mode="Markdown")
