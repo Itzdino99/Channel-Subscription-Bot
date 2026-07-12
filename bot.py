@@ -56,8 +56,8 @@ def start_handler(message):
                 markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
                 bot.send_message(message.chat.id, 
                     f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:", 
-                                 rejoin_url = f"https://t.me/+WA5xxUNmb9tmZmE1"
-            markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
+                                 
+            markup.add(InlineKeyboardButton("🔗 Demo URL", url="https://t.me/+WA5xxUNmb9tmZmE1"))
             
                     reply_markup=markup, parse_mode="Markdown")
                 return
