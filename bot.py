@@ -162,7 +162,7 @@ def user_pays(call):
     USD_RATE = 140
     usd_price = float(price) / USD_RATE
 
-    qr_url = "https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
+    qr_url = "https://i.ibb.co/v4yw96tb/IMG-20260712-103503.jpg"
 
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
