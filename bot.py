@@ -86,9 +86,7 @@ if len(text) > 1:
                 reply_markup=markup,
                 parse_mode="Markdown"
             )
-
             return
-
     except Exception as e:
         print(e)
                 
