@@ -52,7 +52,10 @@ if len(text) > 1:
             rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
             markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
-            USD_RATE = 140
+            
+            USD_RATE = 140  # 1 USD = 140 NPR (change if needed)
+
+usd_price = float(price) / USD_RATE
 
             # Display Dynamic Plans
             for p_time, p_price in ch_data["plans"].items():
