@@ -49,7 +49,7 @@ def start_handler(message):
                 markup = InlineKeyboardMarkup()
 
                 # Demo URL
-                rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
+                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
                 markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
                 USD_RATE = 140
