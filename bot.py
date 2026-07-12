@@ -92,8 +92,7 @@ usd_price = float(price) / USD_RATE
 
     except Exception as e:
         print(e)
-                return
-        except: pass
+                
 
     # Admin Panel Greeting
     if user_id == ADMIN_ID:
