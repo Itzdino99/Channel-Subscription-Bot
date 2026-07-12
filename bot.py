@@ -41,28 +41,53 @@ def start_handler(message):
 
     # User entry via Deep Link
     if len(text) > 1:
-        try:
-            ch_id = int(text[1])
-            ch_data = channels_col.find_one({"channel_id": ch_id})
-            if ch_data:
-                markup = InlineKeyboardMarkup()
-                
-                # Display Dynamic Plans
-                for p_time, p_price in ch_data['plans'].items():
-                    label = f"{p_time} Min" if int(p_time) < 60 else f"{int(p_time)//1440} Days"
-                    
-                    markup.add(InlineKeyboardButton(f"💳 {label} - रु.{p_price}", callback_data=f"select_{ch_id}_{p_time}"))
-              
-                
-            markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-                bot.send_message(message.chat.id, 
-                    f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:", 
-                                 rejoin_url = f"https://t.me/+WA5xxUNmb9tmZmE1"
-            markup = InlinekeyBoardMarkup().add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
-            
-            
-            
-                    reply_markup=markup, parse_mode="Markdown")
+    try:
+        ch_id = int(text[1])
+        ch_data = channels_col.find_one({"channel_id": ch_id})
+
+        if ch_data:
+            markup = InlineKeyboardMarkup()
+
+            # Demo URL (only once)
+            rejoin_url = "https://t.me/+WA5xxUNmb9tmZmE1"
+            markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
+
+            USD_RATE = 140  # Change if needed
+
+            # Display Dynamic Plans
+            for p_time, p_price in ch_data['plans'].items():
+
+                if int(p_time) < 1440:
+                    label = f"{p_time} Min"
+                else:
+                    label = f"{int(p_time)//1440} Days"
+
+                usd_price = float(p_price) / USD_RATE
+
+                markup.add(
+                    InlineKeyboardButton(
+                        f"💳 {label} - रु.{p_price} (${usd_price:.2f})",
+                        callback_data=f"select_{ch_id}_{p_time}"
+                    )
+                )
+
+            # Contact Admin
+            markup.add(
+                InlineKeyboardButton(
+                    "📞 Contact Admin",
+                    url=f"https://t.me/{CONTACT_USERNAME}"
+                )
+            )
+
+            bot.send_message(
+                message.chat.id,
+                f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:",
+                reply_markup=markup,
+                parse_mode="Markdown"
+            )
+
+    except Exception as e:
+        print(e)
                 return
         except: pass
 
