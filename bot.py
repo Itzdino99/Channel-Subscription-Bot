@@ -47,12 +47,11 @@ def start_handler(message):
             if ch_data:
                 markup = InlineKeyboardMarkup()
                 # Display Dynamic Plans
-                markup.add(InlineKeyboardButton("Demo 💋", url=f"https://t.me/{CONTACT_USERNAME}"))
                 for p_time, p_price in ch_data['plans'].items():
                     label = f"{p_time} Min" if int(p_time) < 60 else f"{int(p_time)//1440} Days"
-                    markup.add(InlineKeyboardButton(f"💳 {label} - ₹{p_price}", callback_data=f"select_{ch_id}_{p_time}"))
+                    markup.add(InlineKeyboardButton(f"ðŸ’³ {label} - â‚¹{p_price}", callback_data=f"select_{ch_id}_{p_time}"))
                 
-                markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
+                markup.add(InlineKeyboardButton("ðŸ“ž Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
                 bot.send_message(message.chat.id, 
                     f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:", 
                     reply_markup=markup, parse_mode="Markdown")
@@ -61,7 +60,7 @@ def start_handler(message):
 
     # Admin Panel Greeting
     if user_id == ADMIN_ID:
-        bot.send_message(message.chat.id, "✅ Admin Panel Active!\n\n/add - Add/Edit Channel & Prices\n/channels - Manage Existing Channels")
+        bot.send_message(message.chat.id, "âœ… Admin Panel Active!\n\n/add - Add/Edit Channel & Prices\n/channels - Manage Existing Channels")
     else:
         bot.send_message(message.chat.id, "Welcome! To join a channel, please use the link provided by the Admin.")
 
@@ -75,7 +74,7 @@ def list_channels(message):
         markup.add(InlineKeyboardButton(f"Channel: {ch['name']}", callback_data=f"manage_{ch['channel_id']}"))
         count += 1
     
-    markup.add(InlineKeyboardButton("➕ Add New Channel", callback_data="add_new"))
+    markup.add(InlineKeyboardButton("âž• Add New Channel", callback_data="add_new"))
     
     if count == 0:
         bot.send_message(ADMIN_ID, "No channels found. Click below to add one.", reply_markup=markup)
@@ -103,7 +102,7 @@ def get_plans(message):
             "Example:\n`1440:99, 43200:199` (1 Day and 30 Days)", parse_mode="Markdown")
         bot.register_next_step_handler(msg, finalize_channel, ch_id, ch_name)
     else:
-        bot.send_message(ADMIN_ID, "❌ Error: Message was not forwarded. Use /add to try again.")
+        bot.send_message(ADMIN_ID, "âŒ Error: Message was not forwarded. Use /add to try again.")
 
 def finalize_channel(message, ch_id, ch_name):
     try:
@@ -115,9 +114,9 @@ def finalize_channel(message, ch_id, ch_name):
         
         channels_col.update_one({"channel_id": ch_id}, {"$set": {"name": ch_name, "plans": plans_dict, "admin_id": ADMIN_ID}}, upsert=True)
         bot_username = bot.get_me().username
-        bot.send_message(ADMIN_ID, f"✅ Setup Successful!\n\nInvite Link for users:\n`https://t.me/{bot_username}?start={ch_id}`", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"âœ… Setup Successful!\n\nInvite Link for users:\n`https://t.me/{bot_username}?start={ch_id}`", parse_mode="Markdown")
     except:
-        bot.send_message(ADMIN_ID, "❌ Invalid format. Please use `Min:Price, Min:Price`. Use /add to retry.")
+        bot.send_message(ADMIN_ID, "âŒ Invalid format. Please use `Min:Price, Min:Price`. Use /add to retry.")
 
 # --- USER: PAYMENT FLOW ---
 
@@ -125,64 +124,17 @@ def finalize_channel(message, ch_id, ch_name):
 def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
-    price = int(ch_data['plans'][mins])
-
-    # Free Demo Plan (No QR, No Admin Approval)
-    if price == 0:
-        expiry_datetime = datetime.now() + timedelta(minutes=int(mins))
-        expiry_ts = int(expiry_datetime.timestamp())
-
-        link = bot.create_chat_invite_link(
-            int(ch_id),
-            member_limit=1,
-            expire_date=expiry_ts
-        )
-
-        users_col.update_one(
-            {"user_id": call.from_user.id, "channel_id": int(ch_id)},
-            {"$set": {"expiry": expiry_datetime.timestamp()}},
-            upsert=True
-        )
-
-        bot.send_message(
-            call.message.chat.id,
-            f"🎉 Demo Access Activated!\n\n"
-            f"Duration: {mins} Minutes\n\n"
-            f"Join Link:\n{link.invite_link}"
-        )
-        return
-
-    # Paid Plans
-    qr_url = "https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
-
+    price = ch_data['plans'][mins]
+    
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa={UPI_ID}%26am={price}%26cu=INR"
+    
     markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton(
-            "✅ I Have Paid",
-            callback_data=f"paid_{ch_id}_{mins}"
-        )
-    )
-    markup.add(
-        InlineKeyboardButton(
-            "📞 Contact Admin",
-            url=f"https://t.me/{CONTACT_USERNAME}"
-        )
-    )
-
-    bot.send_photo(
-        call.message.chat.id,
-        qr_url,
-        caption=(
-            f"💳 Plan: {mins} Minutes\n"
-            f"Price: रु{price}\n\n"
-            "Binance ID For International Clients\n\n"
-            f"Binance ID: `{UPI_ID}`\n\n"
-            "Please send the payment to the payment method above and then click "
-            "'I Have Paid'. Also send your payment screenshot to the admin for verification."
-        ),
-        reply_markup=markup,
-        parse_mode="Markdown"
-        )
+    markup.add(InlineKeyboardButton("âœ… I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
+    markup.add(InlineKeyboardButton("ðŸ“ž Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
+    
+    bot.send_photo(call.message.chat.id, qr_url, 
+                   caption=f"Plan: {mins} Minutes\nPrice: â‚¹{price}\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
+                   reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
@@ -192,14 +144,14 @@ def admin_notify(call):
     price = ch_data['plans'][mins]
     
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}_{ch_id}_{mins}"))
-    markup.add(InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user.id}"))
+    markup.add(InlineKeyboardButton("âœ… Approve", callback_data=f"app_{user.id}_{ch_id}_{mins}"))
+    markup.add(InlineKeyboardButton("âŒ Reject", callback_data=f"rej_{user.id}"))
     
-    bot.send_message(ADMIN_ID, f"🔔 *Payment Verification Required!*\n\nUser: {user.first_name}\nChannel: {ch_data['name']}\nPlan: {mins} Mins\nPrice: ₹{price}", 
+    bot.send_message(ADMIN_ID, f"ðŸ”” *Payment Verification Required!*\n\nUser: {user.first_name}\nChannel: {ch_data['name']}\nPlan: {mins} Mins\nPrice: â‚¹{price}", 
                      reply_markup=markup, parse_mode="Markdown")
     
-    u_markup = InlineKeyboardMarkup().add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-    bot.send_message(call.message.chat.id, "✅ Your payment request has been sent. Please wait for Admin approval.", reply_markup=u_markup)
+    u_markup = InlineKeyboardMarkup().add(InlineKeyboardButton("ðŸ“ž Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
+    bot.send_message(call.message.chat.id, "âœ… Your payment request has been sent. Please wait for Admin approval.", reply_markup=u_markup)
 
 # --- APPROVAL & EXPIRY ---
 
@@ -217,11 +169,11 @@ def approve_now(call):
         
         users_col.update_one({"user_id": u_id, "channel_id": ch_id}, {"$set": {"expiry": expiry_datetime.timestamp()}}, upsert=True)
         
-        bot.send_message(u_id, f"🥳 *Payment Approved!*\n\nSubscription: {mins} Minutes\n\nJoin Link: {link.invite_link}\n\n⚠️ Note: This link and your access will expire in {mins} minutes.", parse_mode="Markdown")
-        bot.edit_message_text(f"✅ Approved user {u_id} for {mins} mins.", call.message.chat.id, call.message.message_id)
+        bot.send_message(u_id, f"ðŸ¥³ *Payment Approved!*\n\nSubscription: {mins} Minutes\n\nJoin Link: {link.invite_link}\n\nâš ï¸ Note: This link and your access will expire in {mins} minutes.", parse_mode="Markdown")
+        bot.edit_message_text(f"âœ… Approved user {u_id} for {mins} mins.", call.message.chat.id, call.message.message_id)
         
     except Exception as e:
-        bot.send_message(ADMIN_ID, f"❌ Error: {e}")
+        bot.send_message(ADMIN_ID, f"âŒ Error: {e}")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('manage_'))
 def manage_ch(call):
@@ -245,9 +197,9 @@ def kick_expired_users():
             bot.unban_chat_member(user['channel_id'], user['user_id'])
             
             rejoin_url = f"https://t.me/{bot_username}?start={user['channel_id']}"
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🔄 Re-join / Renew", url=rejoin_url))
+            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("ðŸ”„ Re-join / Renew", url=rejoin_url))
             
-            bot.send_message(user['user_id'], "⚠️ Your subscription has expired.\n\nTo join again or renew, please click the button below:", reply_markup=markup)
+            bot.send_message(user['user_id'], "âš ï¸ Your subscription has expired.\n\nTo join again or renew, please click the button below:", reply_markup=markup)
             users_col.delete_one({"_id": user['_id']})
         except: pass
 
