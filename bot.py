@@ -52,7 +52,7 @@ def start_handler(message):
                 rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
                 markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
-                USD_RATE = 140
+                USD_RATE = 155
 
                 # Display Dynamic Plans
                 for p_time, p_price in ch_data["plans"].items():
@@ -159,7 +159,7 @@ def user_pays(call):
 
     price = ch_data['plans'][mins]
 
-    USD_RATE = 140
+    USD_RATE = 155
     usd_price = float(price) / USD_RATE
 
     qr_url = "https://i.ibb.co/v4yw96tb/IMG-20260712-103503.jpg"
