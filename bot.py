@@ -159,20 +159,30 @@ def finalize_channel(message, ch_id, ch_name):
 def user_pays(call):
     _, ch_id, mins = call.data.split('_')
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
-    price = ch_data['plans'][mins]
-    
-    qr_url = f"https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
-    USD_RATE = 140  # 1 USD = 140 NPR (change if needed)
 
-usd_price = float(price) / USD_RATE
+    price = ch_data['plans'][mins]
+
+    USD_RATE = 140
+    usd_price = float(price) / USD_RATE
+
+    qr_url = "https://i.ibb.co/Z6XKjrcW/2f797ebcf550f69f190a0b16dfb4395c.jpg"
 
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
     markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-    
-    bot.send_photo(call.message.chat.id, qr_url, 
-                   caption=f"Plan: {mins} Minutes\nPrice: रु.{price} (${usd_price:.2f})\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
-                   reply_markup=markup, parse_mode="Markdown")
+
+    bot.send_photo(
+        call.message.chat.id,
+        qr_url,
+        caption=(
+            f"Plan: {mins} Minutes\n"
+            f"Price: रु.{price} (${usd_price:.2f})\n"
+            f"UPI ID: `{UPI_ID}`\n\n"
+            "Please complete the payment and click 'I Have Paid'."
+        ),
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
