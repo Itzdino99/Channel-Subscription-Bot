@@ -171,12 +171,13 @@ def user_pays(call):
     bot.send_photo(
         call.message.chat.id,
         qr_url,
-        caption=("Note : This Qr Is Only For Nepali People/n/n"
+        caption=("⚠️ Note : This Qr Is Only For Nepali People\n\n"
         
             f"Plan: {mins} Minutes\n"
             f"Price: रु.{price} (${usd_price:.2f})\n"
             f"Binance ID: `{UPI_ID}`\n"
             f"USDT BNB Address: `0x5a854d50bfaefb616387cd47fb15f32f1a8cb5e2`\n\n"
+                 "You can Just Tap And Copy Payment Address\n\n"
             
             "After completing the payment click 'I Have Paid'.\n\n"
             "⚠️ You Must Send Payment Screenshot To The Admin."
