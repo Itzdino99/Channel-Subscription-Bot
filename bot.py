@@ -41,56 +41,66 @@ def start_handler(message):
 
     # User entry via Deep Link
     if len(text) > 1:
-        try:
-            ch_id = int(text[1])
-            ch_data = channels_col.find_one({"channel_id": ch_id})
+    try:
+        ch_id = int(text[1])
+        ch_data = channels_col.find_one({"channel_id": ch_id})
 
-            if ch_data:
-                markup = InlineKeyboardMarkup()
+        if ch_data:
+            markup = InlineKeyboardMarkup()
 
-                # Demo URL
-                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
-                markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
+            # Demo URL
+            rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
+            markup.add(
+                InlineKeyboardButton("🔗 Demo", url=rejoin_url)
+            )
 
-                USD_RATE = 180
-                INR_RATE = 2.5
-                
+            USD_RATE = 180
+            INR_RATE = 2.5
 
-                # Display Dynamic Plans
-                for p_time, p_price in ch_data["plans"].items():
+            # Display Plans
+            for p_time, p_price in ch_data["plans"].items():
 
-                    if int(p_time) < 1440:
-                        label = f"{p_time} Min"
-                    else:
-                        label = f"{int(p_time)//1440} Days"
+                minutes = int(p_time)
 
-                    usd_price = float(p_price) / USD_RATE
-                    inr_price = float(p_price) / INR_RATE
+                if minutes > 525600:   # More than 1 year
+                    label = "💎 Lifetime"
+                elif minutes >= 1440:
+                    label = f"📅 {minutes // 1440} Days"
+                else:
+                    label = f"⏱ {minutes} Min"
 
-                    markup.add(
-                        InlineKeyboardButton(
-                            f"💳 {label} - NPR-{p_price} (${usd_price:.2f}) (INR-{inr_price:.2f})",
-                            callback_data=f"select_{ch_id}_{p_time}"
-                        )
-                    )
+                # Calculate prices (used in payment caption)
+                usd_price = float(p_price) / USD_RATE
+                inr_price = float(p_price) / INR_RATE
 
                 markup.add(
                     InlineKeyboardButton(
-                        "📞 Contact Admin",
-                        url=f"https://t.me/{CONTACT_USERNAME}"
+                        label,
+                        callback_data=f"select_{ch_id}_{p_time}"
                     )
                 )
 
-                bot.send_message(
-                    message.chat.id,
-                    f"Welcome!\n\nYou are joining: *{ch_data['name']}*.\n\nPlease select a subscription plan below:",
-                    reply_markup=markup,
-                    parse_mode="Markdown"
+            markup.add(
+                InlineKeyboardButton(
+                    "📞 Contact Admin",
+                    url=f"https://t.me/{CONTACT_USERNAME}"
                 )
-                return
+            )
 
-        except Exception as e:
-            print(e)
+            bot.send_message(
+                message.chat.id,
+                f"""✨ *Welcome!*
+
+📢 *Channel:* `{ch_data['name']}`
+
+Select a subscription plan below.""",
+                reply_markup=markup,
+                parse_mode="Markdown"
+            )
+            return
+
+    except Exception as e:
+        print(e)
                 
 
     # Admin Panel Greeting
