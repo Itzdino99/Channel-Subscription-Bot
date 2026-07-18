@@ -41,7 +41,7 @@ def start_handler(message):
 
     # User entry via Deep Link
     if len(text) > 1:
-    try:
+        try:
         ch_id = int(text[1])
         ch_data = channels_col.find_one({"channel_id": ch_id})
 
@@ -54,8 +54,8 @@ def start_handler(message):
                 InlineKeyboardButton("🔗 Demo", url=rejoin_url)
             )
 
-            USD_RATE = 180
-            INR_RATE = 2.5
+            USD_RATE = 120
+            INR_RATE = 1.5
 
             # Display Plans
             for p_time, p_price in ch_data["plans"].items():
