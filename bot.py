@@ -52,7 +52,9 @@ def start_handler(message):
                 rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
                 markup.add(InlineKeyboardButton("🔗 Demo URL", url=rejoin_url))
 
-                USD_RATE = 155
+                USD_RATE = 180
+                INR_RATE = 2.5
+                
 
                 # Display Dynamic Plans
                 for p_time, p_price in ch_data["plans"].items():
@@ -63,10 +65,11 @@ def start_handler(message):
                         label = f"{int(p_time)//1440} Days"
 
                     usd_price = float(p_price) / USD_RATE
+                    inr_price = float(p_price) / INR_RATE
 
                     markup.add(
                         InlineKeyboardButton(
-                            f"💳 {label} - रु.{p_price} (${usd_price:.2f})",
+                            f"💳 {label} - NPR-{p_price} (${usd_price:.2f}) (INR-{inr_price:.2f})",
                             callback_data=f"select_{ch_id}_{p_time}"
                         )
                     )
@@ -161,6 +164,8 @@ def user_pays(call):
 
     USD_RATE = 155
     usd_price = float(price) / USD_RATE
+    INR_RATE = 2.5
+    inr_price = float(p_price) / INR_RATE
 
     qr_url = "https://i.ibb.co/v4yw96tb/IMG-20260712-103503.jpg"
 
@@ -174,7 +179,7 @@ def user_pays(call):
         caption=("⚠️ Note : This Qr Is Only For Nepali People\n\n"
         
             f"Plan: {mins} Minutes\n"
-            f"Price: रु.{price} (${usd_price:.2f})\n"
+            f"Price: NPR- {price} ($-{usd_price:.2f}) (INR-{inr_price:.2f})\n"
             f"Binance ID: `{UPI_ID}`\n"
             f"USDT BNB Address: `0x5a854d50bfaefb616387cd47fb15f32f1a8cb5e2`\n\n"
                  "You can Just Tap And Copy Payment Address\n\n"
