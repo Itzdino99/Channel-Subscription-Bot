@@ -168,34 +168,60 @@ def finalize_channel(message, ch_id, ch_name):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('select_'))
 def user_pays(call):
     _, ch_id, mins = call.data.split('_')
-    ch_data = channels_col.find_one({"channel_id": int(ch_id)})
 
-    price = ch_data['plans'][mins]
+    ch_data = channels_col.find_one({"channel_id": int(ch_id)})
+    price = ch_data["plans"][mins]
 
     USD_RATE = 155
-    usd_price = float(price) / USD_RATE
     INR_RATE = 2.5
-    inr_price = float(p_price) / INR_RATE
+
+    usd_price = float(price) / USD_RATE
+    inr_price = float(price) / INR_RATE
+
+    # Plan Name
+    minutes = int(mins)
+
+    if minutes > 525600:
+        plan_name = "💎 Lifetime"
+    elif minutes >= 1440:
+        plan_name = f"📅 {minutes // 1440} Days"
+    else:
+        plan_name = f"⏱ {minutes} Min"
 
     qr_url = "https://i.ibb.co/v4yw96tb/IMG-20260712-103503.jpg"
 
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
-    markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
+    markup.add(
+        InlineKeyboardButton(
+            "✅ I Have Paid",
+            callback_data=f"paid_{ch_id}_{mins}"
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            "📞 Contact Admin",
+            url=f"https://t.me/{CONTACT_USERNAME}"
+        )
+    )
 
     bot.send_photo(
         call.message.chat.id,
         qr_url,
-        caption=("⚠️ Note : This Qr Is Only For Nepali People\n\n"
-        
-            f"Plan: {mins} Minutes\n"
-            f"Price: NPR- {price} ($-{usd_price:.2f}) (INR-{inr_price:.2f})\n"
-            f"Binance ID: `{UPI_ID}`\n"
-            f"USDT BNB Address: `0x5a854d50bfaefb616387cd47fb15f32f1a8cb5e2`\n\n"
-                 "You can Just Tap And Copy Payment Address\n\n"
-            
-            "After completing the payment click 'I Have Paid'.\n\n"
-            "⚠️ You Must Send Payment Screenshot To The Admin."
+        caption=(
+            f"📢 *{ch_data['name']}*\n\n"
+            f"💎 *Plan:* {plan_name}\n\n"
+            f"💰 *Price*\n"
+            f"🇳🇵 NPR: {price}\n"
+            f"🇺🇸 USD: ${usd_price:.2f}\n"
+            f"🇮🇳 INR: ₹{inr_price:.2f}\n\n"
+            "━━━━━━━━━━━━━━\n"
+            "⚠️ *For Nepali users only*\n\n"
+            f"*Binance ID:*\n`{UPI_ID}`\n\n"
+            "*USDT (BNB) Address:*\n"
+            "`0x5a854d50bfaefb616387cd47fb15f32f1a8cb5e2`\n\n"
+            "📋 Tap on the payment details to copy them.\n\n"
+            "✅ After completing the payment, tap *I Have Paid*.\n"
+            "📷 Then send your payment screenshot to the admin."
         ),
         reply_markup=markup,
         parse_mode="Markdown"
