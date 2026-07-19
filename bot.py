@@ -34,7 +34,7 @@ users_col = db['users']
 
 # --- ADMIN LOGIC ---
 
-@@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start'])
 def start_handler(message):
     user_id = message.from_user.id
     text = message.text.split()
