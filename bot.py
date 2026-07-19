@@ -51,10 +51,10 @@ def start_handler(message):
                 # Demo URL
                 rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
                 markup.add(
-                    InlineKeyboardButton("🔗 Demo", url=rejoin_url)
+                    InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)
                 )
 
-                USD_RATE = 120
+                USD_RATE = 80
                 INR_RATE = 1.5
 
                 # Display Plans
@@ -169,8 +169,8 @@ def user_pays(call):
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = ch_data["plans"][mins]
 
-    USD_RATE = 155
-    INR_RATE = 2.5
+    USD_RATE = 80
+    INR_RATE = 1.5
 
     usd_price = float(price) / USD_RATE
     inr_price = float(price) / INR_RATE
@@ -212,7 +212,7 @@ def user_pays(call):
             f"🇺🇸 USD: ${usd_price:.2f}\n"
             f"🇮🇳 INR: ₹{inr_price:.2f}\n\n"
             "━━━━━━━━━━━━━━\n"
-            "⚠️ *For Nepali users only*\n\n"
+            "⚠️ * This Qr Is For Nepali users only*\n\n"
             f"*Binance ID:*\n`{UPI_ID}`\n\n"
             "*USDT (BNB) Address:*\n"
             "`0x5a854d50bfaefb616387cd47fb15f32f1a8cb5e2`\n\n"
