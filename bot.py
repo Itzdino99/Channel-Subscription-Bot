@@ -102,7 +102,6 @@ Select a subscription plan below.""",
 
 • Demo access is for testing only.
 • Read all instructions before making a payment.
-• Keep your payment screenshot until your subscription is activated.
 """,
                     parse_mode="Markdown")
                 return
@@ -236,8 +235,7 @@ def user_pays(call):
     message.chat.id,
     """📌 *Notice*
 
-• If you are from India then you can pay through Gift cards.
-(Only If You Don't Know About Crypto Payment).  Contact Admin To Make Payment\n
+• Contact Admin If You Are From India To Make Payment\n
 • Read all instructions before making a payment.\n
 • Keep your payment screenshot until your subscription is activated.
 """,
