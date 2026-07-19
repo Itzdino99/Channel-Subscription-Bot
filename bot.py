@@ -55,7 +55,7 @@ def start_handler(message):
                 )
 
                 USD_RATE = 80
-                INR_RATE = 1.5
+                INR_RATE = 2
 
                 # Display Plans
                 for p_time, p_price in ch_data["plans"].items():
@@ -96,6 +96,15 @@ Select a subscription plan below.""",
                     reply_markup=markup,
                     parse_mode="Markdown"
                 )
+                bot.send_message(
+    message.chat.id,
+    """📌 *Notice*
+
+• Demo access is for testing only.
+• Read all instructions before making a payment.
+• Keep your payment screenshot until your subscription is activated.
+""",
+                    parse_mode="Markdown")
                 return
 
         except Exception as e:
@@ -170,7 +179,7 @@ def user_pays(call):
     price = ch_data["plans"][mins]
 
     USD_RATE = 80
-    INR_RATE = 1.5
+    INR_RATE = 2
 
     usd_price = float(price) / USD_RATE
     inr_price = float(price) / INR_RATE
@@ -223,6 +232,16 @@ def user_pays(call):
         reply_markup=markup,
         parse_mode="Markdown"
     )
+    bot.send_message(
+    message.chat.id,
+    """📌 *Notice*
+
+• If you are from India then you can pay through Gift cards.
+(Only If You Don't Know About Crypto Payment).  Contact Admin To Make Payment\n
+• Read all instructions before making a payment.\n
+• Keep your payment screenshot until your subscription is activated.
+""",
+                    parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
