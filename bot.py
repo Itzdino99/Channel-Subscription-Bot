@@ -40,7 +40,7 @@ def start_handler(message):
     text = message.text.split()
 
     # User entry via Deep Link
-  if len(text) > 1:
+   if len(text) > 1:
     try:
         ch_id = int(text[1])
         ch_data = channels_col.find_one({"channel_id": ch_id})
