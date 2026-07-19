@@ -40,10 +40,10 @@ def start_handler(message):
     text = message.text.split()
 
     # User entry via Deep Link
-    if len(text) > 1:
-       try:
-         ch_id = int(text[1])
-         ch_data = channels_col.find_one({"channel_id": ch_id})
+  if len(text) > 1:
+    try:
+        ch_id = int(text[1])
+        ch_data = channels_col.find_one({"channel_id": ch_id})
 
         if ch_data:
             markup = InlineKeyboardMarkup()
@@ -101,7 +101,6 @@ Select a subscription plan below.""",
 
     except Exception as e:
         print(e)
-                
 
     # Admin Panel Greeting
     if user_id == ADMIN_ID:
