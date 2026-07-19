@@ -232,14 +232,18 @@ def user_pays(call):
         parse_mode="Markdown"
     )
     bot.send_message(
-      message.chat.id,
+    call.message.chat.id,
     """📌 *Notice*
 
-• Contact Admin If You Are From India To Make Payment\n
-• Read all instructions before making a payment.\n
+• Send the *exact* payment amount.
 • Keep your payment screenshot until your subscription is activated.
-""",
-                    parse_mode="Markdown")
+• After payment, tap *✅ I Have Paid*.
+• Then send your payment screenshot to the admin.
+• Verification usually takes a few minutes depending on admin availability.\n\n
+• Contact Admin If You Are From India To Make Payments.\n\n
+🙏 Thank you for your purchase!""",
+    parse_mode="Markdown"
+    )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
