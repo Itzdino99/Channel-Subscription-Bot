@@ -34,74 +34,72 @@ users_col = db['users']
 
 # --- ADMIN LOGIC ---
 
-@bot.message_handler(commands=['start'])
+@@bot.message_handler(commands=['start'])
 def start_handler(message):
     user_id = message.from_user.id
     text = message.text.split()
 
     # User entry via Deep Link
-   if len(text) > 1:
-    try:
-        ch_id = int(text[1])
-        ch_data = channels_col.find_one({"channel_id": ch_id})
+    if len(text) > 1:
+        try:
+            ch_id = int(text[1])
+            ch_data = channels_col.find_one({"channel_id": ch_id})
 
-        if ch_data:
-            markup = InlineKeyboardMarkup()
+            if ch_data:
+                markup = InlineKeyboardMarkup()
 
-            # Demo URL
-            rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
-            markup.add(
-                InlineKeyboardButton("🔗 Demo", url=rejoin_url)
-            )
+                # Demo URL
+                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
+                markup.add(
+                    InlineKeyboardButton("🔗 Demo", url=rejoin_url)
+                )
 
-            USD_RATE = 120
-            INR_RATE = 1.5
+                USD_RATE = 120
+                INR_RATE = 1.5
 
-            # Display Plans
-            for p_time, p_price in ch_data["plans"].items():
+                # Display Plans
+                for p_time, p_price in ch_data["plans"].items():
 
-                minutes = int(p_time)
+                    minutes = int(p_time)
 
-                if minutes > 525600:   # More than 1 year
-                    label = "💎 Lifetime"
-                elif minutes >= 1440:
-                    label = f"📅 {minutes // 1440} Days"
-                else:
-                    label = f"⏱ {minutes} Min"
+                    if minutes > 525600:
+                        label = "💎 Lifetime"
+                    elif minutes >= 1440:
+                        label = f"📅 {minutes // 1440} Days"
+                    else:
+                        label = f"⏱ {minutes} Min"
 
-                # Calculate prices (used in payment caption)
-                usd_price = float(p_price) / USD_RATE
-                inr_price = float(p_price) / INR_RATE
+                    usd_price = float(p_price) / USD_RATE
+                    inr_price = float(p_price) / INR_RATE
+
+                    markup.add(
+                        InlineKeyboardButton(
+                            label,
+                            callback_data=f"select_{ch_id}_{p_time}"
+                        )
+                    )
 
                 markup.add(
                     InlineKeyboardButton(
-                        label,
-                        callback_data=f"select_{ch_id}_{p_time}"
+                        "📞 Contact Admin",
+                        url=f"https://t.me/{CONTACT_USERNAME}"
                     )
                 )
 
-            markup.add(
-                InlineKeyboardButton(
-                    "📞 Contact Admin",
-                    url=f"https://t.me/{CONTACT_USERNAME}"
-                )
-            )
-
-            bot.send_message(
-                message.chat.id,
-                f"""✨ *Welcome!*
+                bot.send_message(
+                    message.chat.id,
+                    f"""✨ *Welcome!*
 
 📢 *Channel:* `{ch_data['name']}`
 
 Select a subscription plan below.""",
-                reply_markup=markup,
-                parse_mode="Markdown"
-            )
-            return
+                    reply_markup=markup,
+                    parse_mode="Markdown"
+                )
+                return
 
-    except Exception as e:
-        print(e)
-
+        except Exception as e:
+            print(e)
     # Admin Panel Greeting
     if user_id == ADMIN_ID:
         bot.send_message(message.chat.id, "✅ Admin Panel Active!\n\n/add - Add/Edit Channel & Prices\n/channels - Manage Existing Channels")
