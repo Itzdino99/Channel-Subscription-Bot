@@ -14,8 +14,8 @@ app = Flask('')
 def home(): return "Bot is running and healthy!"
 
 def run_web():
-port = int(os.environ.get("PORT", 5000))
-app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
 Thread(target=run_web).start()
