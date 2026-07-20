@@ -40,74 +40,77 @@ def start_handler(message):
     user_id = message.from_user.id
     text = message.text.split()
 
-#User entry via Deep Link
-
+# User entry via Deep Link
 if len(text) > 1:
-        try:
-            ch_id = int(text[1])
-            ch_data = channels_col.find_one({"channel_id": ch_id})
-            if ch_data:
-                markup = InlineKeyboardMarkup()
-        # Demo URL    
-                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"    
-                markup.add( InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url) )    
+    try:
+        ch_id = int(text[1])
+        ch_data = channels_col.find_one({"channel_id": ch_id})
 
-        USD_RATE = 80    
-        INR_RATE = 2    
+        if ch_data:
+            markup = InlineKeyboardMarkup()
 
-        # Display Plans    
-        for p_time, p_price in ch_data["plans"].items():    
+            # Demo URL
+            rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
+            markup.add(
+                InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)
+            )
 
-            minutes = int(p_time)    
+            USD_RATE = 80
+            INR_RATE = 2
 
-            if minutes > 525600:    
-                label = "💎 Lifetime"    
-            elif minutes >= 1440:    
-                label = f"📅 {minutes // 1440} Days"    
-            else:    
-                label = f"⏱ {minutes} Min"    
+            # Display Plans
+            for p_time, p_price in ch_data["plans"].items():
 
-            usd_price = float(p_price) / USD_RATE    
-            inr_price = float(p_price) / INR_RATE    
+                minutes = int(p_time)
 
-            markup.add(    
-                InlineKeyboardButton(    
-                    label,    
-                    callback_data=f"select_{ch_id}_{p_time}"    
-                )    
-            )    
+                if minutes > 525600:
+                    label = "💎 Lifetime"
+                elif minutes >= 1440:
+                    label = f"📅 {minutes // 1440} Days"
+                else:
+                    label = f"⏱ {minutes} Min"
 
-        markup.add(    
-            InlineKeyboardButton(    
-                "📞 Contact Admin",    
-                url=f"https://t.me/{CONTACT_USERNAME}"    
-            )    
-        )    
+                markup.add(
+                    InlineKeyboardButton(
+                        label,
+                        callback_data=f"select_{ch_id}_{p_time}"
+                    )
+                )
 
-        bot.send_message(    
-            message.chat.id,    
-            f"""✨ *Welcome!*
+            markup.add(
+                InlineKeyboardButton(
+                    "📞 Contact Admin",
+                    url=f"https://t.me/{CONTACT_USERNAME}"
+                )
+            )
 
-📢 Channel: {ch_data['name']}
+            bot.send_message(
+                message.chat.id,
+                f"""✨ *Welcome!*
 
-Select a subscription plan below.""",
-reply_markup=markup,
-parse_mode="Markdown"
-)
-bot.send_message(
-message.chat.id,
-"""📌 Notice
+📢 *Channel:* `{ch_data['name']}`
+
+Select a subscription plan below.
+""",
+                reply_markup=markup,
+                parse_mode="Markdown"
+            )
+
+            bot.send_message(
+                message.chat.id,
+                """📌 *Notice*
 
 • Demo access is for testing only.
 • Read all instructions before making a payment.
 """,
-parse_mode="Markdown")
-return
+                parse_mode="Markdown"
+            )
 
-except Exception as e:
-print(e)
+            return
 
-Admin Panel Greeting
+    except Exception as e:
+        print(e)
+#Admin Panel Greeting
 
 if user_id == ADMIN_ID:
 bot.send_message(message.chat.id, "✅ Admin Panel Active!\n\n/add - Add/Edit Channel & Prices\n/channels - Manage Existing Channels")
