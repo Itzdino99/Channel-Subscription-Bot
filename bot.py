@@ -40,76 +40,95 @@ def start_handler(message):
     user_id = message.from_user.id
     text = message.text.split()
 
-# User entry via Deep Link
-if len(text) > 1:
-    try:
-        ch_id = int(text[1])
-        ch_data = channels_col.find_one({"channel_id": ch_id})
+@bot.message_handler(commands=['start'])
+def start_handler(message):
+    user_id = message.from_user.id
+    text = message.text.split()
 
-        if ch_data:
-            markup = InlineKeyboardMarkup()
+    # User entry via Deep Link
+    if len(text) > 1:
+        try:
+            ch_id = int(text[1])
+            ch_data = channels_col.find_one({"channel_id": ch_id})
 
-            # Demo URL
-            rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
-            markup.add(
-                InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)
-            )
+            if ch_data:
+                markup = InlineKeyboardMarkup()
 
-            USD_RATE = 80
-            INR_RATE = 2
+                # Demo URL
+                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"
+                markup.add(
+                    InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)
+                )
 
-            # Display Plans
-            for p_time, p_price in ch_data["plans"].items():
+                USD_RATE = 80
+                INR_RATE = 2
 
-                minutes = int(p_time)
+                # Display Plans
+                for p_time, p_price in ch_data["plans"].items():
 
-                if minutes > 525600:
-                    label = "💎 Lifetime"
-                elif minutes >= 1440:
-                    label = f"📅 {minutes // 1440} Days"
-                else:
-                    label = f"⏱ {minutes} Min"
+                    minutes = int(p_time)
+
+                    if minutes > 525600:
+                        label = "💎 Lifetime"
+                    elif minutes >= 1440:
+                        label = f"📅 {minutes // 1440} Days"
+                    else:
+                        label = f"⏱ {minutes} Min"
+
+                    markup.add(
+                        InlineKeyboardButton(
+                            label,
+                            callback_data=f"select_{ch_id}_{p_time}"
+                        )
+                    )
 
                 markup.add(
                     InlineKeyboardButton(
-                        label,
-                        callback_data=f"select_{ch_id}_{p_time}"
+                        "📞 Contact Admin",
+                        url=f"https://t.me/{CONTACT_USERNAME}"
                     )
                 )
 
-            markup.add(
-                InlineKeyboardButton(
-                    "📞 Contact Admin",
-                    url=f"https://t.me/{CONTACT_USERNAME}"
-                )
-            )
-
-            bot.send_message(
-                message.chat.id,
-                f"""✨ *Welcome!*
+                bot.send_message(
+                    message.chat.id,
+                    f"""✨ *Welcome!*
 
 📢 *Channel:* `{ch_data['name']}`
 
 Select a subscription plan below.
 """,
-                reply_markup=markup,
-                parse_mode="Markdown"
-            )
+                    reply_markup=markup,
+                    parse_mode="Markdown"
+                )
 
-            bot.send_message(
-                message.chat.id,
-                """📌 *Notice*
+                bot.send_message(
+                    message.chat.id,
+                    """📌 *Notice*
 
 • Demo access is for testing only.
 • Read all instructions before making a payment.
 """,
-                parse_mode="Markdown"
-            )
+                    parse_mode="Markdown"
+                )
 
-            return
+                return
 
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
+
+    # Admin Panel Greeting
+    if user_id == ADMIN_ID:
+        bot.send_message(
+            message.chat.id,
+            "✅ Admin Panel Active!\n\n"
+            "/add - Add/Edit Channel & Prices\n"
+            "/channels - Manage Existing Channels"
+        )
+    else:
+        bot.send_message(
+            message.chat.id,
+            "Welcome! To join a channel, please use the link provided by the Admin."
+        )
         
 # ==========================
 # ADMIN PANEL
