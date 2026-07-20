@@ -129,24 +129,6 @@ Select a subscription plan below.
             message.chat.id,
             "Welcome! To join a channel, please use the link provided by the Admin."
         )
-        
-# ==========================
-# ADMIN PANEL
-# ==========================
-
-# Admin Panel Greeting
-if user_id == ADMIN_ID:
-    bot.send_message(
-        message.chat.id,
-        "✅ Admin Panel Active!\n\n"
-        "/add - Add/Edit Channel & Prices\n"
-        "/channels - Manage Existing Channels"
-    )
-else:
-    bot.send_message(
-        message.chat.id,
-        "Welcome! To join a channel, please use the link provided by the Admin."
-    )
 
 
 @bot.message_handler(commands=['channels'], func=lambda m: m.from_user.id == ADMIN_ID)
