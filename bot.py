@@ -189,6 +189,32 @@ def finalize_channel(message, ch_id, ch_name):
         bot.send_message(ADMIN_ID, f"✅ Setup Successful!\n\nInvite Link for users:\n`https://t.me/{bot_username}?start={ch_id}`", parse_mode="Markdown")
     except:
         bot.send_message(ADMIN_ID, "❌ Invalid format. Please use `Min:Price, Min:Price`. Use /add to retry.")
+@bot.message_handler(commands=['stats'], func=lambda m: m.from_user.id == ADMIN_ID)
+def admin_stats(message):
+
+    stats = stats_col.find_one({"_id": "main"})
+
+    total_channels = channels_col.count_documents({})
+    active_subs = users_col.count_documents({"channel_id": {"$exists": True}})
+
+    bot.send_message(
+        ADMIN_ID,
+        f"""
+📊 *BOT STATISTICS*
+
+👤 Total Users: {stats['total_users']}
+
+💳 Total Payments: {stats['total_payments']}
+
+💰 Revenue: NPR {stats['total_revenue']}
+
+📢 Channels: {total_channels}
+
+✅ Active Subscriptions: {active_subs}
+""",
+        parse_mode="Markdown"
+                    )
+
 
 # --- USER: PAYMENT FLOW ---
 
