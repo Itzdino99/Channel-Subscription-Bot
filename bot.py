@@ -49,10 +49,8 @@ if len(text) > 1:
             if ch_data:
                 markup = InlineKeyboardMarkup()
         # Demo URL    
-        rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"    
-        markup.add(    
-            InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)    
-        )    
+                rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"    
+                markup.add( InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url) )    
 
         USD_RATE = 80    
         INR_RATE = 2    
