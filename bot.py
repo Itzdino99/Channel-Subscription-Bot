@@ -37,10 +37,10 @@ users_col = db['users']
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-user_id = message.from_user.id
-text = message.text.split()
+    user_id = message.from_user.id
+    text = message.text.split()
 
-User entry via Deep Link
+#User entry via Deep Link
 
 if len(text) > 1:
 try:
