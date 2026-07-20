@@ -256,11 +256,11 @@ def admin_notify(call):
     markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}_{ch_id}_{mins}"))
     markup.add(InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user.id}"))
     
-    bot.send_message(ADMIN_ID, f"🔔 *Payment Verification Required!*\n\nUser: {user.first_name}\nChannel: {ch_data['name']}\nPlan: {mins} Mins\nPrice: â‚¹{price}", 
+    bot.send_message(ADMIN_ID, f"🔔 *Payment Verification Required!*\n\nUser: {user.first_name}\nChannel: {ch_data['name']}\nPlan: {mins} Mins\nPrice: NPR,${price}", 
                      reply_markup=markup, parse_mode="Markdown")
     
     u_markup = InlineKeyboardMarkup().add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-    bot.send_message(call.message.chat.id, "✅ Your payment request has been sent. Please wait for Admin approval.", reply_markup=u_markup)
+    bot.send_message(call.message.chat.id, "✅ Your payment request has been sent. Please wait for Admin approval.\n\n Once Payment Approved You Will Get Your Link Here !. ", reply_markup=u_markup)
 
 # --- APPROVAL & EXPIRY ---
 
