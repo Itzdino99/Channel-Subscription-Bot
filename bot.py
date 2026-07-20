@@ -43,13 +43,11 @@ def start_handler(message):
 #User entry via Deep Link
 
 if len(text) > 1:
-try:
-ch_id = int(text[1])
-ch_data = channels_col.find_one({"channel_id": ch_id})
-
-if ch_data:    
-        markup = InlineKeyboardMarkup()    
-
+        try:
+            ch_id = int(text[1])
+            ch_data = channels_col.find_one({"channel_id": ch_id})
+            if ch_data:
+                markup = InlineKeyboardMarkup()
         # Demo URL    
         rejoin_url = "https://t.me/+lSW2hYbgrUNkMzFl"    
         markup.add(    
