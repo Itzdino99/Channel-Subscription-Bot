@@ -31,12 +31,34 @@ client = MongoClient(MONGO_URI)
 db = client['sub_management']
 channels_col = db['channels']
 users_col = db['users']
+# ---------- NEW DATABASES ----------
+payments_col = db["payments"]      # Payment history
+coupons_col = db["coupons"]        # Coupon codes
+stats_col = db["stats"]            # Bot statistics
 
+# ---------- CREATE DEFAULT STATS ----------
+if not stats_col.find_one({"_id": "main"}):
+    stats_col.insert_one({
+        "_id": "main",
+        "total_users": 0,
+        "total_payments": 0,
+        "total_revenue": 0
+    })
+    
 # --- ADMIN LOGIC ---
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     user_id = message.from_user.id
+if not users_col.find_one({"user_id": user_id}):
+    users_col.insert_one({
+        "user_id": user_id
+    })
+
+    stats_col.update_one(
+        {"_id": "main"},
+        {"$inc": {"total_users": 1}}
+    )
     text = message.text.split()
 
     # User entry via Deep Link
@@ -277,6 +299,25 @@ def approve_now(call):
         link = bot.create_chat_invite_link(ch_id, member_limit=1, expire_date=expiry_ts)
         
         users_col.update_one({"user_id": u_id, "channel_id": ch_id}, {"$set": {"expiry": expiry_datetime.timestamp()}}, upsert=True)
+        price = int(channels_col.find_one({"channel_id": ch_id})["plans"][str(mins)])
+
+payments_col.insert_one({
+    "user_id": u_id,
+    "channel_id": ch_id,
+    "amount": price,
+    "plan": mins,
+    "time": datetime.now()
+})
+
+stats_col.update_one(
+    {"_id": "main"},
+    {
+        "$inc": {
+            "total_payments": 1,
+            "total_revenue": price
+        }
+    }
+)
         
         bot.send_message(u_id, f"🥳 *Payment Approved!*\n\nSubscription: {mins} Minutes\n\nJoin Link: {link.invite_link}\n\n ⚠️ Note: This link and your access will expire in {mins} minutes.", parse_mode="Markdown")
         bot.edit_message_text(f"✅ Approved user {u_id} for {mins} mins.", call.message.chat.id, call.message.message_id)
