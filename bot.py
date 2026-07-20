@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from threading import Thread
 
---- RENDER KEEP-ALIVE SERVER ---
+#--- RENDER KEEP-ALIVE SERVER ---
 
 app = Flask('')
 @app.route('/')
@@ -20,7 +20,7 @@ app.run(host='0.0.0.0', port=port)
 def keep_alive():
 Thread(target=run_web).start()
 
---- CONFIGURATION (Environment Variables) ---
+#--- CONFIGURATION (Environment Variables) ---
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 MONGO_URI = os.getenv('MONGO_URI')
@@ -34,7 +34,7 @@ db = client['sub_management']
 channels_col = db['channels']
 users_col = db['users']
 
---- ADMIN LOGIC ---
+#--- ADMIN LOGIC ---
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
@@ -265,7 +265,7 @@ bot.send_message(ADMIN_ID, f"🔔 *Payment Verification Required!*\n\nUser: {use
 u_markup = InlineKeyboardMarkup().add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))  
 bot.send_message(call.message.chat.id, "✅ Your payment request has been sent. Please wait for Admin approval.\n\n Once Payment Approved You Will Get Your Link Here !. ", reply_markup=u_markup)
 
---- APPROVAL & EXPIRY ---
+#--- APPROVAL & EXPIRY ---
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('app_'))
 def approve_now(call):
@@ -316,7 +316,7 @@ for user in expired_users:
         users_col.delete_one({"_id": user['_id']})  
     except: pass
 
---- STARTUP ---
+#--- STARTUP ---
 
 if name == 'main':
 keep_alive()
