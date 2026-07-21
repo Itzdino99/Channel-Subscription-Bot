@@ -543,23 +543,23 @@ def kick_expired_users():
 # ==========================
 
 if __name__ == "__main__":
-
     keep_alive()
 
     scheduler = BackgroundScheduler()
-
     scheduler.add_job(
         kick_expired_users,
         "interval",
         minutes=1
     )
-
     scheduler.start()
 
     bot.remove_webhook()
 
     try:
-    print("✅ Bot is running...")
-    bot.infinity_polling(timeout=20, long_polling_timeout=10)
-except Exception as e:
-    print(f"Polling error: {e}")
+        print("✅ Bot is running...")
+        bot.infinity_polling(
+            timeout=20,
+            long_polling_timeout=10
+        )
+    except Exception as e:
+        print(f"Polling error: {e}")
