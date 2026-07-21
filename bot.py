@@ -60,7 +60,7 @@ def start_handler(message):
                     InlineKeyboardButton("🔗 ᴅᴇᴍᴏ", url=rejoin_url)
                 )
 
-                USD_RATE = 80
+                USD_RATE = 50
                 INR_RATE = 2
 
                 # Display Plans
@@ -288,7 +288,7 @@ def user_pays(call):
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = float(ch_data["plans"][mins])
 
-    USD_RATE = 71.42
+    USD_RATE = 50
     INR_RATE = 2
 
     usd_price = price / USD_RATE
