@@ -438,7 +438,7 @@ def receive_payment_screenshot(message):
             callback_data=f"rej_{user_id}"
         )
     )
-    @bot.message_handler(func=lambda message: message.from_user.id in pending_payments, content_types=['text'])
+@bot.message_handler(func=lambda message: message.from_user.id in pending_payments, content_types=['text'])
 def waiting_for_screenshot(message):
 
     bot.reply_to(
@@ -451,7 +451,7 @@ Please upload your payment screenshot as a *PHOTO*.
 """,
         parse_mode="Markdown"
     )
-    @bot.message_handler(content_types=['document'])
+@bot.message_handler(content_types=['document'])
 def document_handler(message):
 
     if message.from_user.id in pending_payments:
