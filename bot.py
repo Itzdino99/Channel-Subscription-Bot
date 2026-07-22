@@ -525,61 +525,78 @@ def document_handler(message):
     )
 
     # Forward screenshot to admin
-    bot.forward_message(
-        ADMIN_ID,
-        message.chat.id,
-        message.message_id
-    )
+bot.forward_message(
+    ADMIN_ID,
+    message.chat.id,
+    message.message_id
+)
 
-    username = (
-        f"@{message.from_user.username}"
-        if message.from_user.username
-        else "No Username"
-    )
+username = (
+    f"@{message.from_user.username}"
+    if message.from_user.username
+    else "No Username"
+)
 
-    bot.send_message(
-        ADMIN_ID,
-        f"""🔔 *Payment Verification Required*
+# Create Approve / Reject buttons
+markup = InlineKeyboardMarkup()
+
+markup.add(
+    InlineKeyboardButton(
+        "✅ Approve",
+        callback_data=f"app_{user_id}_{payment['channel_id']}_{payment['plan']}"
+    )
+)
+
+markup.add(
+    InlineKeyboardButton(
+        "❌ Reject",
+        callback_data=f"rej_{user_id}"
+    )
+)
+
+bot.send_message(
+    ADMIN_ID,
+    f"""🔔 *Payment Verification Required!*
 
 👤 *Name:* {message.from_user.first_name}
 🆔 *User ID:* `{user_id}`
 🌐 *Username:* {username}
 
 📢 *Channel:* {payment['channel_name']}
-💎 *Plan:* {payment['plan']} Minutes
+💎 *Plan:* {payment['plan']}
 💰 *Price:* NPR {payment['price']}
 
-📷 Payment screenshot has been forwarded above.
+📷 Screenshot has been forwarded above.
 """,
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+    reply_markup=markup,
+    parse_mode="Markdown"
+)
 
     # User Contact Admin Button
-    u_markup = InlineKeyboardMarkup()
+u_markup = InlineKeyboardMarkup()
 
-    u_markup.add(
-        InlineKeyboardButton(
-            "📞 Contact Admin",
-            url=f"https://t.me/{CONTACT_USERNAME}"
-        )
+u_markup.add(
+    InlineKeyboardButton(
+        "📞 Contact Admin",
+        url=f"https://t.me/{CONTACT_USERNAME}"
     )
+)
 
-    bot.send_message(
-        user_id,
-        """✅ *Screenshot Received!*
+bot.send_message(
+    user_id,
+    """✅ *Screenshot Uploaded Successfully!*
 
-Your payment screenshot has been sent to the admin successfully.
+📷 Your payment screenshot has been forwarded to the admin.
 
-⏳ Please wait while your payment is being verified.
+⏳ *Status:* Waiting for admin verification.
 
-You will automatically receive your join link once your payment is approved.
+🔔 Once your payment is approved, your invite link will be sent here automatically.
 
-If you have any questions, tap the button below.
+🙏 Thank you for your patience!
 """,
-        reply_markup=u_markup,
-        parse_mode="Markdown"
-    )
+    reply_markup=u_markup,
+    parse_mode="Markdown"
+)
 
     # Remove pending request
     del pending_payments[user_id]
