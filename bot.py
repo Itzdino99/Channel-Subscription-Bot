@@ -724,17 +724,20 @@ def kick_expired_users():
 if __name__ == "__main__":
     keep_alive()
 
-    scheduler.add_job(
-    kick_expired_users,
-    "interval",
-    minutes=1
-)
+    scheduler = BackgroundScheduler()
 
-scheduler.add_job(
-    clear_pending_payments,
-    "interval",
-    minutes=1
-)
+    scheduler.add_job(
+        kick_expired_users,
+        "interval",
+        minutes=1
+    )
+
+    scheduler.add_job(
+        clear_pending_payments,
+        "interval",
+        minutes=1
+    )
+
     scheduler.start()
 
     bot.remove_webhook()
