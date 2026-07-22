@@ -598,8 +598,8 @@ bot.send_message(
     parse_mode="Markdown"
 )
 
-    # Remove pending request
-    del pending_payments[user_id]
+# Remove pending request
+del pending_payments[user_id]
 
 # ==========================
 # APPROVAL & EXPIRY
