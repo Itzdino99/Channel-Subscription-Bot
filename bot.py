@@ -539,7 +539,7 @@ def photo_handler(message):
     payment = pending_payments[user_id]
 
     # Forward screenshot to admin
-bot.forward_message(
+    bot.forward_message(
     ADMIN_ID,
     message.chat.id,
     message.message_id
