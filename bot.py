@@ -412,8 +412,6 @@ Once you upload the screenshot, it will automatically be forwarded to the admin 
 # RECEIVE PAYMENT SCREENSHOT
 # ==========================
 
-@bot.message_handler(content_types=['photo'])
-
 
 
 # ==========================
