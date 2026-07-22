@@ -571,7 +571,6 @@ def photo_handler(message):
 
     # Approve / Reject buttons
     markup = InlineKeyboardMarkup()
-
     markup.row(
         InlineKeyboardButton(
             "✅ Approve",
@@ -590,9 +589,8 @@ def photo_handler(message):
         parse_mode="Markdown"
     )
 
-    # Contact button
+    # User confirmation
     u_markup = InlineKeyboardMarkup()
-
     u_markup.add(
         InlineKeyboardButton(
             "📞 Contact Admin",
@@ -615,7 +613,6 @@ def photo_handler(message):
         reply_markup=u_markup,
         parse_mode="Markdown"
     )
-
 # Remove pending request
 del pending_payments[user_id]
 
