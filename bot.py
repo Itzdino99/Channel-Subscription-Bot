@@ -32,6 +32,11 @@ client = MongoClient(MONGO_URI)
 db = client['sub_management']
 channels_col = db['channels']
 users_col = db['users']
+# ==========================
+# TEMP PAYMENT STORAGE
+# ==========================
+
+pending_payments = {}
 
 #--- ADMIN LOGIC ---
 
@@ -358,44 +363,137 @@ def user_pays(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_"))
-def admin_notify(call):
+def payment_screenshot_request(call):
 
     _, ch_id, mins = call.data.split("_")
 
-    user = call.from_user
+    user_id = call.from_user.id
+
+    # Prevent duplicate requests
+    if user_id in pending_payments:
+        bot.answer_callback_query(
+            call.id,
+            "⚠️ You already have a pending payment verification.",
+            show_alert=True
+        )
+        return
 
     ch_data = channels_col.find_one({"channel_id": int(ch_id)})
     price = ch_data["plans"][mins]
+
+    pending_payments[user_id] = {
+        "channel_id": int(ch_id),
+        "channel_name": ch_data["name"],
+        "plan": mins,
+        "price": price,
+        "time": datetime.now()
+    }
+
+    bot.answer_callback_query(call.id)
+
+    bot.send_message(
+        user_id,
+        """📷 *Upload Payment Screenshot*
+
+Please send your payment screenshot as a *PHOTO*.
+
+⚠️ Do NOT send:
+• Screenshot as a file
+• Video
+• Text message
+
+Once you upload the screenshot, it will automatically be forwarded to the admin for verification.
+
+⏳ Please upload it within 10 minutes.
+""",
+        parse_mode="Markdown"
+    )
+    # ==========================
+# RECEIVE PAYMENT SCREENSHOT
+# ==========================
+
+@bot.message_handler(content_types=['photo'])
+def receive_payment_screenshot(message):
+
+    user_id = message.from_user.id
+
+    # Ignore users who are not waiting for screenshot
+    if user_id not in pending_payments:
+        return
+
+    payment = pending_payments[user_id]
 
     markup = InlineKeyboardMarkup()
 
     markup.add(
         InlineKeyboardButton(
             "✅ Approve",
-            callback_data=f"app_{user.id}_{ch_id}_{mins}"
+            callback_data=f"app_{user_id}_{payment['channel_id']}_{payment['plan']}"
         )
     )
 
     markup.add(
         InlineKeyboardButton(
             "❌ Reject",
-            callback_data=f"rej_{user.id}"
+            callback_data=f"rej_{user_id}"
         )
+    )
+    @bot.message_handler(func=lambda message: message.from_user.id in pending_payments, content_types=['text'])
+def waiting_for_screenshot(message):
+
+    bot.reply_to(
+        message,
+        """📷 *Payment Screenshot Required*
+
+Please upload your payment screenshot as a *PHOTO*.
+
+❌ Text messages are not accepted while payment verification is pending.
+""",
+        parse_mode="Markdown"
+    )
+    @bot.message_handler(content_types=['document'])
+def document_handler(message):
+
+    if message.from_user.id in pending_payments:
+
+        bot.reply_to(
+            message,
+            """❌ Please send the payment screenshot as a *PHOTO*, not as a document.""",
+            parse_mode="Markdown"
+        )
+
+    # Forward screenshot to admin
+    bot.forward_message(
+        ADMIN_ID,
+        message.chat.id,
+        message.message_id
+    )
+
+    username = (
+        f"@{message.from_user.username}"
+        if message.from_user.username
+        else "No Username"
     )
 
     bot.send_message(
         ADMIN_ID,
-        f"""🔔 *Payment Verification Required!*
+        f"""🔔 *Payment Verification Required*
 
-👤 User: {user.first_name}
-📢 Channel: {ch_data['name']}
-💎 Plan: {mins} Minutes
-💰 Price: NPR {price}
+👤 *Name:* {message.from_user.first_name}
+🆔 *User ID:* `{user_id}`
+🌐 *Username:* {username}
+
+📢 *Channel:* {payment['channel_name']}
+💎 *Plan:* {payment['plan']} Minutes
+💰 *Price:* NPR {payment['price']}
+
+📷 Payment screenshot has been forwarded above.
 """,
         reply_markup=markup,
         parse_mode="Markdown"
     )
 
+    # User Contact Admin Button
     u_markup = InlineKeyboardMarkup()
 
     u_markup.add(
@@ -406,10 +504,23 @@ def admin_notify(call):
     )
 
     bot.send_message(
-        call.message.chat.id,
-        "✅ Your payment request has been sent.\n\nPlease wait for the admin to verify your payment. Once approved, you will receive your join link here.",
-        reply_markup=u_markup
+        user_id,
+        """✅ *Screenshot Received!*
+
+Your payment screenshot has been sent to the admin successfully.
+
+⏳ Please wait while your payment is being verified.
+
+You will automatically receive your join link once your payment is approved.
+
+If you have any questions, tap the button below.
+""",
+        reply_markup=u_markup,
+        parse_mode="Markdown"
     )
+
+    # Remove pending request
+    del pending_payments[user_id]
 
 # ==========================
 # APPROVAL & EXPIRY
@@ -429,7 +540,6 @@ def approve_now(call):
         expiry_datetime = datetime.now() + timedelta(minutes=mins)
         expiry_ts = int(expiry_datetime.timestamp())
 
-        # Create one-time invite link
         link = bot.create_chat_invite_link(
             ch_id,
             member_limit=1,
@@ -449,22 +559,36 @@ def approve_now(call):
             upsert=True
         )
 
+        # Remove pending payment
+        if u_id in pending_payments:
+            del pending_payments[u_id]
+
+        # Plan Name
+        if mins > 525600:
+            plan_name = "💎 Lifetime"
+        elif mins >= 1440:
+            plan_name = f"📅 {mins // 1440} Days"
+        else:
+            plan_name = f"⏱ {mins} Minutes"
+
         bot.send_message(
             u_id,
-            f"""🥳 *Payment Approved!*
+            f"""🎉 *Payment Approved!*
 
-💎 Subscription: {mins} Minutes
+Your payment has been verified successfully.
 
-🔗 Join Link:
+💎 *Plan:* {plan_name}
+
+🔗 *Join Link:*
 {link.invite_link}
 
-⚠️ This link and your subscription will expire in {mins} minutes.
+⚠️ This invite link can only be used once.
 """,
             parse_mode="Markdown"
         )
 
         bot.edit_message_text(
-            f"✅ Approved user {u_id} for {mins} minutes.",
+            "✅ Payment Approved Successfully.",
             call.message.chat.id,
             call.message.message_id
         )
@@ -474,6 +598,66 @@ def approve_now(call):
             ADMIN_ID,
             f"❌ Error:\n{e}"
         )
+        
+@bot.callback_query_handler(func=lambda call: call.data.startswith("rej_"))
+def reject_payment(call):
+
+    user_id = int(call.data.split("_")[1])
+
+    if user_id in pending_payments:
+        del pending_payments[user_id]
+
+    bot.send_message(
+        user_id,
+        """❌ *Payment Rejected*
+
+Your payment could not be verified.
+
+Please check your payment and submit a new screenshot.
+
+If you believe this is a mistake, contact the admin.
+""",
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                "📞 Contact Admin",
+                url=f"https://t.me/{CONTACT_USERNAME}"
+            )
+        )
+    )
+
+    bot.edit_message_text(
+        "❌ Payment Rejected.",
+        call.message.chat.id,
+        call.message.message_id
+    )
+# ==========================
+# CLEAR PENDING PAYMENTS
+# ==========================
+
+def clear_pending_payments():
+
+    now = datetime.now()
+
+    expired = []
+
+    for user_id, data in pending_payments.items():
+
+        if (now - data["time"]).seconds >= 600:
+
+            try:
+                bot.send_message(
+                    user_id,
+                    "⌛ Your payment verification request expired.\n\nPlease tap *I Have Paid* again and upload your screenshot.",
+                    parse_mode="Markdown"
+                )
+            except:
+                pass
+
+            expired.append(user_id)
+
+    for user_id in expired:
+        del pending_payments[user_id]
 
 
 # ==========================
@@ -540,12 +724,17 @@ def kick_expired_users():
 if __name__ == "__main__":
     keep_alive()
 
-    scheduler = BackgroundScheduler()
     scheduler.add_job(
-        kick_expired_users,
-        "interval",
-        minutes=1
-    )
+    kick_expired_users,
+    "interval",
+    minutes=1
+)
+
+scheduler.add_job(
+    clear_pending_payments,
+    "interval",
+    minutes=1
+)
     scheduler.start()
 
     bot.remove_webhook()
