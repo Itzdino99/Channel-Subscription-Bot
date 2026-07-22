@@ -613,8 +613,10 @@ def photo_handler(message):
         reply_markup=u_markup,
         parse_mode="Markdown"
     )
-# Remove pending request
-del pending_payments[user_id]
+user_id = message.from_user.id
+
+if user_id in pending_payments:
+    del pending_payments[user_id]
 
 # ==========================
 # APPROVAL & EXPIRY
