@@ -408,7 +408,7 @@ Once you upload the screenshot, it will automatically be forwarded to the admin 
 """,
         parse_mode="Markdown"
     )
-    # ==========================
+  # ==========================
 # RECEIVE PAYMENT SCREENSHOT
 # ==========================
 
@@ -417,11 +417,24 @@ def receive_payment_screenshot(message):
 
     user_id = message.from_user.id
 
-    # Ignore users who are not waiting for screenshot
+    # Ignore users not waiting for screenshot
     if user_id not in pending_payments:
         return
 
     payment = pending_payments[user_id]
+
+    # Forward screenshot to admin
+    bot.forward_message(
+        ADMIN_ID,
+        message.chat.id,
+        message.message_id
+    )
+
+    username = (
+        f"@{message.from_user.username}"
+        if message.from_user.username
+        else "No Username"
+    )
 
     markup = InlineKeyboardMarkup()
 
@@ -438,29 +451,78 @@ def receive_payment_screenshot(message):
             callback_data=f"rej_{user_id}"
         )
     )
-@bot.message_handler(func=lambda message: message.from_user.id in pending_payments, content_types=['text'])
+
+    bot.send_message(
+        ADMIN_ID,
+        f"""🔔 *Payment Verification Required!*
+
+👤 *Name:* {message.from_user.first_name}
+🆔 *User ID:* `{user_id}`
+🌐 *Username:* {username}
+
+📢 *Channel:* {payment['channel_name']}
+💎 *Plan:* {payment['plan']} Minutes
+💰 *Price:* NPR {payment['price']}
+
+📷 Screenshot has been forwarded above.
+""",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
+
+    u_markup = InlineKeyboardMarkup()
+    u_markup.add(
+        InlineKeyboardButton(
+            "📞 Contact Admin",
+            url=f"https://t.me/{CONTACT_USERNAME}"
+        )
+    )
+
+    bot.send_message(
+        user_id,
+        """✅ *Screenshot Received!*
+
+Your payment screenshot has been sent to the admin.
+
+⏳ Please wait while your payment is being verified.
+""",
+        reply_markup=u_markup,
+        parse_mode="Markdown"
+    )
+
+
+# ==========================
+# TEXT WHILE WAITING
+# ==========================
+
+@bot.message_handler(
+    func=lambda m: m.from_user.id in pending_payments,
+    content_types=['text']
+)
 def waiting_for_screenshot(message):
 
     bot.reply_to(
         message,
-        """📷 *Payment Screenshot Required*
-
-Please upload your payment screenshot as a *PHOTO*.
-
-❌ Text messages are not accepted while payment verification is pending.
-""",
+        "📷 Please upload your payment screenshot as a PHOTO.",
         parse_mode="Markdown"
     )
+
+
+# ==========================
+# DOCUMENT WHILE WAITING
+# ==========================
+
 @bot.message_handler(content_types=['document'])
 def document_handler(message):
 
-    if message.from_user.id in pending_payments:
+    if message.from_user.id not in pending_payments:
+        return
 
-        bot.reply_to(
-            message,
-            """❌ Please send the payment screenshot as a *PHOTO*, not as a document.""",
-            parse_mode="Markdown"
-        )
+    bot.reply_to(
+        message,
+        "❌ Please send the payment screenshot as a PHOTO, not as a document.",
+        parse_mode="Markdown"
+    )
 
     # Forward screenshot to admin
     bot.forward_message(
