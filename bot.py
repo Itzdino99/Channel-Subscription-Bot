@@ -464,9 +464,9 @@ def photo_handler(message):
 
         # Forward screenshot
         bot.forward_message(
-            chat_id=ADMIN_ID,
-            from_chat_id=message.chat.id,
-            message_id=message.message_id
+            ADMIN_ID,
+            message.chat.id,
+            message.message_id
         )
 
         username = (
@@ -475,22 +475,20 @@ def photo_handler(message):
             else "No Username"
         )
 
-        # Admin payment details
+        # Admin payment details (NO Markdown)
         bot.send_message(
             ADMIN_ID,
-            f"""🔔 *Payment Verification Required!*
+            f"""🔔 Payment Verification Required!
 
-👤 *Name:* {message.from_user.first_name}
-🆔 *User ID:* `{user_id}`
-🌐 *Username:* {username}
+👤 Name: {message.from_user.first_name}
+🆔 User ID: {user_id}
+🌐 Username: {username}
 
-📢 *Channel:* {payment.get('channel_name', 'Unknown')}
-💎 *Plan:* {payment.get('plan', 'Unknown')}
-💰 *Price:* NPR {payment.get('price', '0')}
+📢 Channel: {payment['channel_name']}
+💎 Plan: {payment['plan']}
+💰 Price: NPR {payment['price']}
 
-📷 Screenshot has been forwarded above.
-""",
-            parse_mode="Markdown"
+📷 Screenshot has been forwarded above."""
         )
 
         # Approve / Reject buttons
@@ -498,7 +496,7 @@ def photo_handler(message):
         markup.add(
             InlineKeyboardButton(
                 "✅ Approve",
-                callback_data=f"app_{user_id}_{payment.get('channel_id')}_{payment.get('plan')}"
+                callback_data=f"app_{user_id}_{payment['channel_id']}_{payment['plan']}"
             ),
             InlineKeyboardButton(
                 "❌ Reject",
@@ -508,9 +506,8 @@ def photo_handler(message):
 
         bot.send_message(
             ADMIN_ID,
-            "👇 *Select an action:*",
-            reply_markup=markup,
-            parse_mode="Markdown"
+            "👇 Select an action:",
+            reply_markup=markup
         )
 
         # User confirmation
@@ -524,17 +521,16 @@ def photo_handler(message):
 
         bot.send_message(
             user_id,
-            """✅ *Screenshot Uploaded Successfully!*
+            """✅ Screenshot Uploaded Successfully!
 
 📷 Your payment screenshot has been forwarded to the admin.
 
-⏳ *Status:* Waiting for admin verification.
+⏳ Status: Waiting for admin verification.
 
 🔔 Once your payment is approved, your invite link will be sent here automatically.
 
 🙏 Thank you for your patience!""",
-            reply_markup=user_markup,
-            parse_mode="Markdown"
+            reply_markup=user_markup
         )
 
         del pending_payments[user_id]
@@ -543,8 +539,7 @@ def photo_handler(message):
         print(f"PHOTO_HANDLER ERROR: {e}")
         bot.send_message(
             ADMIN_ID,
-            f"❌ Photo Handler Error:\n`{e}`",
-            parse_mode="Markdown"
+            f"PHOTO_HANDLER ERROR:\n{e}"
         )
 
 # ==========================
