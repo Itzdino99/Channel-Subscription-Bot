@@ -524,39 +524,53 @@ def document_handler(message):
         parse_mode="Markdown"
     )
 
+
+# ==========================
+# PHOTO HANDLER
+# ==========================
+
+@bot.message_handler(content_types=['photo'])
+def photo_handler(message):
+
+    if message.from_user.id not in pending_payments:
+        return
+
+    user_id = message.from_user.id
+    payment = pending_payments[user_id]
+
     # Forward screenshot to admin
-bot.forward_message(
-    ADMIN_ID,
-    message.chat.id,
-    message.message_id
-)
-
-username = (
-    f"@{message.from_user.username}"
-    if message.from_user.username
-    else "No Username"
-)
-
-# Create Approve / Reject buttons
-markup = InlineKeyboardMarkup()
-
-markup.add(
-    InlineKeyboardButton(
-        "✅ Approve",
-        callback_data=f"app_{user_id}_{payment['channel_id']}_{payment['plan']}"
+    bot.forward_message(
+        ADMIN_ID,
+        message.chat.id,
+        message.message_id
     )
-)
 
-markup.add(
-    InlineKeyboardButton(
-        "❌ Reject",
-        callback_data=f"rej_{user_id}"
+    username = (
+        f"@{message.from_user.username}"
+        if message.from_user.username
+        else "No Username"
     )
-)
 
-bot.send_message(
-    ADMIN_ID,
-    f"""🔔 *Payment Verification Required!*
+    # Create Approve / Reject buttons
+    markup = InlineKeyboardMarkup()
+
+    markup.add(
+        InlineKeyboardButton(
+            "✅ Approve",
+            callback_data=f"app_{user_id}_{payment['channel_id']}_{payment['plan']}"
+        )
+    )
+
+    markup.add(
+        InlineKeyboardButton(
+            "❌ Reject",
+            callback_data=f"rej_{user_id}"
+        )
+    )
+
+    bot.send_message(
+        ADMIN_ID,
+        f"""🔔 *Payment Verification Required!*
 
 👤 *Name:* {message.from_user.first_name}
 🆔 *User ID:* `{user_id}`
@@ -568,23 +582,23 @@ bot.send_message(
 
 📷 Screenshot has been forwarded above.
 """,
-    reply_markup=markup,
-    parse_mode="Markdown"
-)
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 
     # User Contact Admin Button
-u_markup = InlineKeyboardMarkup()
+    u_markup = InlineKeyboardMarkup()
 
-u_markup.add(
-    InlineKeyboardButton(
-        "📞 Contact Admin",
-        url=f"https://t.me/{CONTACT_USERNAME}"
+    u_markup.add(
+        InlineKeyboardButton(
+            "📞 Contact Admin",
+            url=f"https://t.me/{CONTACT_USERNAME}"
+        )
     )
-)
 
-bot.send_message(
-    user_id,
-    """✅ *Screenshot Uploaded Successfully!*
+    bot.send_message(
+        user_id,
+        """✅ *Screenshot Uploaded Successfully!*
 
 📷 Your payment screenshot has been forwarded to the admin.
 
@@ -594,9 +608,9 @@ bot.send_message(
 
 🙏 Thank you for your patience!
 """,
-    reply_markup=u_markup,
-    parse_mode="Markdown"
-)
+        reply_markup=u_markup,
+        parse_mode="Markdown"
+    )
 
 # Remove pending request
 del pending_payments[user_id]
