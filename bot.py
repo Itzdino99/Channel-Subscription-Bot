@@ -1167,57 +1167,89 @@ def competition_reset(call):
 # MEMBER COUNTING
 # ============================================================
 
-@bot.message_handler(
-    content_types=["new_chat_members"]
-)
-def new_members_handler(message):
+# ============================================================
+# DIRECT MEMBER ADD TRACKER
+# ============================================================
 
-    competition = competitions_col.find_one({
-        "admin_id": ADMIN_ID,
-        "active": True
-    })
+@bot.chat_member_handler()
+def track_member_addition(update):
 
-    if not competition:
-        return
+    try:
 
-    if message.chat.id != competition["group_id"]:
-        return
+        competition = competitions_col.find_one({
+            "admin_id": ADMIN_ID,
+            "active": True
+        })
 
-    # --------------------------------------------------------
-    # Telegram service messages do not expose an adder in every
-    # join scenario. We only credit when the sender is available.
-    # --------------------------------------------------------
+        # No active competition
+        if not competition:
+            return
 
-    adder = message.from_user
+        # Only track configured group
+        if update.chat.id != competition["group_id"]:
+            return
 
-    if not adder:
-        return
+        old_status = update.old_chat_member.status
+        new_status = update.new_chat_member.status
 
-    # Do not count bot itself
-    if adder.is_bot:
-        return
+        new_user = update.new_chat_member.user
+        adder = update.from_user
 
-    for new_user in message.new_chat_members:
+        # Safety checks
+        if not new_user:
+            return
 
+        if not adder:
+            return
+
+        # Don't count bots
         if new_user.is_bot:
-            continue
+            return
 
-        # Don't count self
+        if adder.is_bot:
+            return
+
+        # Don't count self-join
         if new_user.id == adder.id:
-            continue
+            return
 
-        # Prevent same user being counted repeatedly
-        already_added = competition_scores_col.find_one({
-            "group_id": message.chat.id,
+        # ----------------------------------------------------
+        # Detect NEW membership
+        # ----------------------------------------------------
+
+        was_not_member = old_status in [
+            "left",
+            "kicked"
+        ]
+
+        is_member_now = new_status in [
+            "member",
+            "administrator",
+            "restricted"
+        ]
+
+        if not was_not_member or not is_member_now:
+            return
+
+        # ----------------------------------------------------
+        # Prevent duplicate counting
+        # ----------------------------------------------------
+
+        already_counted = competition_scores_col.find_one({
+            "group_id": update.chat.id,
             "added_user_id": new_user.id
         })
 
-        if already_added:
-            continue
+        if already_counted:
+            return
+
+        # ----------------------------------------------------
+        # Add +1 to inviter
+        # ----------------------------------------------------
 
         competition_scores_col.update_one(
             {
-                "group_id": message.chat.id,
+                "group_id": update.chat.id,
                 "user_id": adder.id
             },
             {
@@ -1226,19 +1258,55 @@ def new_members_handler(message):
                 },
                 "$set": {
                     "username": adder.username,
-                    "first_name": adder.first_name
+                    "first_name": adder.first_name,
+                    "last_activity": datetime.now()
                 }
             },
             upsert=True
         )
 
+        # ----------------------------------------------------
+        # Record exactly who was added
+        # ----------------------------------------------------
+
         competition_scores_col.insert_one({
-            "group_id": message.chat.id,
+            "group_id": update.chat.id,
+            "user_id": adder.id,
             "added_user_id": new_user.id,
-            "adder_id": adder.id,
+            "added_user_name": new_user.first_name,
             "created_at": datetime.now()
         })
 
+        # ----------------------------------------------------
+        # Optional notification
+        # ----------------------------------------------------
+
+        try:
+
+            bot.send_message(
+                update.chat.id,
+                f"🎉 {adder.first_name} added a new member!\n\n"
+                f"➕ Their count increased by 1."
+            )
+
+        except Exception as e:
+
+            print(
+                "COUNT NOTIFICATION ERROR:",
+                e
+            )
+
+        print(
+            f"✅ MEMBER COUNTED | "
+            f"Adder: {adder.id} | "
+            f"New member: {new_user.id}"
+        )
+
+    except Exception as e:
+
+        print(
+            f"MEMBER TRACKING ERROR: {e}"
+        )
 
 # ============================================================
 # LEADERBOARD
@@ -1373,11 +1441,12 @@ def my_count(message):
 
         return
 
-    score = competition_scores_col.find_one({
-        "group_id": message.chat.id,
-        "user_id": message.from_user.id
-    })
-
+    higher = competition_scores_col.count_documents({
+    "group_id": message.chat.id,
+    "count": {
+        "$gt": count
+    }
+})
     count = (
         score.get("count", 0)
         if score
